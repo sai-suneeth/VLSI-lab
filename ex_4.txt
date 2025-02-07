@@ -1,0 +1,283 @@
+module up_down_counter (
+    input clk,          // System clock (100 MHz on BASYS 3)
+    input reset,        // Active-high reset
+    input up_down,      // Control signal: 1 for up, 0 for down
+    output reg [3:0] count, // 4-bit counter output
+    output [6:0] seg,   // Seven-segment display output
+    output [3:0] an     // Display enable (only one digit active)
+);
+
+    // Clock Divider (for human-visible counting speed)
+    reg [26:0] clk_div = 0;  
+    wire slow_clk = clk_div[26]; // Slow clock for counter
+
+    always @(posedge clk) begin
+        clk_div <= clk_div + 1;  // Slow down clock
+    end
+
+    // Counter Logic
+    always @(posedge slow_clk or posedge reset) begin
+        if (reset)
+            count <= 4'b0000;  // Reset counter to zero
+        else if (up_down)
+            count <= count + 1; // Count up
+        else
+            count <= count - 1; // Count down
+    end
+
+    // Seven-segment display driver
+    seven_seg_decoder display (
+        .bin(count), 
+        .seg(seg)
+    );
+
+    assign an = 4'b1110; // Enable only one digit (rightmost)
+
+endmodule
+
+// Seven-Segment Decoder
+module seven_seg_decoder (
+    input [3:0] bin,
+    output reg [6:0] seg
+);
+    always @(*) begin
+        case (bin)
+            4'b0000: seg = 7'b1000000; // 0
+            4'b0001: seg = 7'b1111001; // 1
+            4'b0010: seg = 7'b0100100; // 2
+            4'b0011: seg = 7'b0110000; // 3
+            4'b0100: seg = 7'b0011001; // 4
+            4'b0101: seg = 7'b0010010; // 5
+            4'b0110: seg = 7'b0000010; // 6
+            4'b0111: seg = 7'b1111000; // 7
+            4'b1000: seg = 7'b0000000; // 8
+            4'b1001: seg = 7'b0010000; // 9
+            default: seg = 7'b1111111; // Blank
+        endcase
+    end
+endmodule
+
+
+
+
+set_property -dict { PACKAGE_PIN W5   IOSTANDARD LVCMOS33 } [get_ports clk]
+set_property -dict { PACKAGE_PIN V17  IOSTANDARD LVCMOS33 } [get_ports R]
+set_property -dict { PACKAGE_PIN U9   IOSTANDARD LVCMOS33 } [get_ports { seg[0] }]
+set_property -dict { PACKAGE_PIN V9   IOSTANDARD LVCMOS33 } [get_ports { seg[1] }]
+set_property -dict { PACKAGE_PIN T9   IOSTANDARD LVCMOS33 } [get_ports { seg[2] }]
+set_property -dict { PACKAGE_PIN U8   IOSTANDARD LVCMOS33 } [get_ports { seg[3] }]
+set_property -dict { PACKAGE_PIN R8   IOSTANDARD LVCMOS33 } [get_ports { seg[4] }]
+set_property -dict { PACKAGE_PIN T8   IOSTANDARD LVCMOS33 } [get_ports { seg[5] }]
+set_property -dict { PACKAGE_PIN V8   IOSTANDARD LVCMOS33 } [get_ports { seg[6] }]
+set_property -dict { PACKAGE_PIN U14  IOSTANDARD LVCMOS33 } [get_ports { an[0] }]
+set_property -dict { PACKAGE_PIN V14  IOSTANDARD LVCMOS33 } [get_ports { an[1] }]
+set_property -dict { PACKAGE_PIN U13  IOSTANDARD LVCMOS33 } [get_ports { an[2] }]
+set_property -dict { PACKAGE_PIN V13  IOSTANDARD LVCMOS33 } [get_ports { an[3] }]
+
+
+
+---------------------------------------------------------------------------------------------------------------------------
+
+
+
+
+
+
+module even_counter (
+    input clk,       // 100 MHz clock
+    input R,         // Reset (active-high)
+    output reg [2:0] count,  // 3-bit counter
+);
+
+    reg [26:0] clk_div = 0;  
+    wire slow_clk = clk_div[26]; // Slow clock for visible counting
+
+    // Clock Divider
+    always @(posedge clk) begin
+        clk_div <= clk_div + 1;
+    end
+
+    // Even Counter Logic
+    always @(posedge slow_clk or posedge R) begin
+        if (R)
+            count <= 3'b000;  // Reset to 0
+        else if (count == 3'b110)
+            count <= 3'b000;  // Restart at 0 after 6
+        else
+            count <= count + 2; // Increment by 2 (even numbers only)
+    end
+
+    // Seven-Segment Display
+    seven_seg_decoder display (
+        .bin(count),
+        .seg(seg)
+    );
+
+    assign an = 4'b1110; // Enable only one digit (rightmost)
+
+endmodule
+
+
+
+
+set_property -dict { PACKAGE_PIN W5   IOSTANDARD LVCMOS33 } [get_ports clk]
+set_property -dict { PACKAGE_PIN V17  IOSTANDARD LVCMOS33 } [get_ports R]
+set_property -dict { PACKAGE_PIN U9   IOSTANDARD LVCMOS33 } [get_ports { seg[0] }]
+set_property -dict { PACKAGE_PIN V9   IOSTANDARD LVCMOS33 } [get_ports { seg[1] }]
+set_property -dict { PACKAGE_PIN T9   IOSTANDARD LVCMOS33 } [get_ports { seg[2] }]
+set_property -dict { PACKAGE_PIN U8   IOSTANDARD LVCMOS33 } [get_ports { seg[3] }]
+set_property -dict { PACKAGE_PIN R8   IOSTANDARD LVCMOS33 } [get_ports { seg[4] }]
+set_property -dict { PACKAGE_PIN T8   IOSTANDARD LVCMOS33 } [get_ports { seg[5] }]
+set_property -dict { PACKAGE_PIN V8   IOSTANDARD LVCMOS33 } [get_ports { seg[6] }]
+set_property -dict { PACKAGE_PIN U14  IOSTANDARD LVCMOS33 } [get_ports { an[0] }]
+set_property -dict { PACKAGE_PIN V14  IOSTANDARD LVCMOS33 } [get_ports { an[1] }]
+set_property -dict { PACKAGE_PIN U13  IOSTANDARD LVCMOS33 } [get_ports { an[2] }]
+set_property -dict { PACKAGE_PIN V13  IOSTANDARD LVCMOS33 } [get_ports { an[3] }]
+
+-------------------------------------------------------------------------------------------------------
+
+
+
+
+module odd_counter (
+    input clk,       // 100 MHz clock
+    input R,         // Reset (active-high)
+    output reg [3:0] count  // 4-bit counter output
+);
+
+    reg [26:0] clk_div = 0;  
+    wire slow_clk = clk_div[26]; // Slow clock for visible counting
+
+    // Clock Divider
+    always @(posedge clk) begin
+        clk_div <= clk_div + 1;
+    end
+
+    // Odd Counter Logic
+    always @(posedge slow_clk or posedge R) begin
+        if (R)
+            count <= 4'b0001;  // Start at 1
+        else if (count == 4'b1101)
+            count <= 4'b0001;  // Restart after 13 (odd numbers cycle)
+        else
+            count <= count + 2; // Increment by 2 (odd numbers only)
+    end
+
+endmodule
+
+
+
+
+set_property -dict { PACKAGE_PIN W5   IOSTANDARD LVCMOS33 } [get_ports clk]
+set_property -dict { PACKAGE_PIN V17  IOSTANDARD LVCMOS33 } [get_ports R]
+set_property -dict { PACKAGE_PIN U16  IOSTANDARD LVCMOS33 } [get_ports { count[0] }]
+set_property -dict { PACKAGE_PIN V16  IOSTANDARD LVCMOS33 } [get_ports { count[1] }]
+set_property -dict { PACKAGE_PIN W16  IOSTANDARD LVCMOS33 } [get_ports { count[2] }]
+set_property -dict { PACKAGE_PIN W17  IOSTANDARD LVCMOS33 } [get_ports { count[3] }]
+
+------------------------------------------------------------------------------------------------------------
+
+
+
+module fibonacci_counter (
+    input clk,      // 100 MHz clock
+    input R,        // Reset (active-high)
+    output reg [3:0] count  // 4-bit Fibonacci output
+);
+
+    reg [3:0] prev1 = 4'b0001;  // First number (1)
+    reg [3:0] prev2 = 4'b0000;  // Second number (0)
+    reg [26:0] clk_div = 0;  
+    wire slow_clk = clk_div[26]; // Slow clock for visible counting
+
+    // Clock Divider
+    always @(posedge clk) begin
+        clk_div <= clk_div + 1;
+    end
+
+    // Fibonacci Counter Logic
+    always @(posedge slow_clk or posedge R) begin
+        if (R) begin
+            prev1 <= 4'b0001;  // Reset to 1
+            prev2 <= 4'b0000;  // Reset to 0
+            count <= 4'b0001;  // First Fibonacci number
+        end else begin
+            count <= (prev1 + prev2) & 4'b1111; // Fibonacci sum (mod 16)
+            prev2 <= prev1;
+            prev1 <= count;
+        end
+    end
+
+endmodule
+
+
+
+
+set_property -dict { PACKAGE_PIN W5   IOSTANDARD LVCMOS33 } [get_ports clk]
+set_property -dict { PACKAGE_PIN V17  IOSTANDARD LVCMOS33 } [get_ports R]
+set_property -dict { PACKAGE_PIN U16  IOSTANDARD LVCMOS33 } [get_ports { count[0] }]
+set_property -dict { PACKAGE_PIN V16  IOSTANDARD LVCMOS33 } [get_ports { count[1] }]
+set_property -dict { PACKAGE_PIN W16  IOSTANDARD LVCMOS33 } [get_ports { count[2] }]
+set_property -dict { PACKAGE_PIN W17  IOSTANDARD LVCMOS33 } [get_ports { count[3] }]
+
+-------------------------------------------------------------------------------------------------------------------------
+
+
+
+
+module sequence_detector_1101 (
+    input clk,      // 100 MHz clock
+    input rst,      // Reset (active-high)
+    input din,      // Serial data input
+    output reg detected  // Output: 1 when 1101 is detected
+);
+
+    reg [2:0] state, next_state;
+
+    // State Encoding
+    parameter S0 = 3'b000, // Initial state
+              S1 = 3'b001, // Got '1'
+              S2 = 3'b010, // Got '11'
+              S3 = 3'b011, // Got '110'
+              S4 = 3'b100; // Got '1101' (Final State)
+
+    // State Transition
+    always @(posedge clk or posedge rst) begin
+        if (rst)
+            state <= S0;
+        else
+            state <= next_state;
+    end
+
+    // Next State Logic & Output Logic
+    always @(*) begin
+        case (state)
+            S0:  next_state = (din) ? S1 : S0;
+            S1:  next_state = (din) ? S2 : S0;
+            S2:  next_state = (din) ? S2 : S3;
+            S3:  next_state = (din) ? S4 : S0;
+            S4:  next_state = (din) ? S1 : S0;  // Non-overlapping, restart
+
+            default: next_state = S0;
+        endcase
+    end
+
+    // Output logic (detected = 1 when state reaches S4)
+    always @(posedge clk) begin
+        detected <= (state == S4);
+    end
+
+endmodule
+
+
+
+
+
+set_property -dict { PACKAGE_PIN W5   IOSTANDARD LVCMOS33 } [get_ports clk]
+set_property -dict { PACKAGE_PIN V17  IOSTANDARD LVCMOS33 } [get_ports rst]
+set_property -dict { PACKAGE_PIN U16  IOSTANDARD LVCMOS33 } [get_ports din]
+set_property -dict { PACKAGE_PIN V16  IOSTANDARD LVCMOS33 } [get_ports detected]
+
+-------------------------------------------------------------------------------------------------------------------------------------------------
+
+

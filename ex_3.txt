@@ -1,0 +1,84 @@
+module adder(
+input[3:0]a,b,input cin,output[3:0] sum,output cout
+    );
+assign {cout,sum}=a+b+cin;
+endmodule
+
+
+
+----------------------------------------------------------------
+
+
+module universal_shift_register (
+    input clk,          // Clock signal
+    input rst,          // Reset (active-high)
+    input [1:0] mode,   // Mode control: 00 = Hold, 01 = Shift Left, 10 = Shift Right, 11 = Parallel Load
+    input [3:0] d_in,   // Parallel input data
+    input serial_in,    // Serial input for shifting
+    output reg [3:0] q  // Register output
+);
+
+    always @(posedge clk or posedge rst) begin
+        if (rst) 
+            q <= 4'b0000;  // Reset register to 0
+        else begin
+            case (mode)
+                2'b00: q <= q;  // Hold current value
+                2'b01: q <= {q[2:0], serial_in};  // Shift left
+                2'b10: q <= {serial_in, q[3:1]};  // Shift right
+                2'b11: q <= d_in;  // Parallel load
+                default: q <= q;
+            endcase
+        end
+    end
+
+endmodule
+
+
+
+------------------------------------------------------------------------
+module xor_function (
+    input a,     // First input
+    input b,     // Second input
+    output reg y // XOR output
+);
+
+    // Function to compute XOR
+    function automatic xor_eval;
+        input x1, x2;
+        begin
+            xor_eval = x1 ^ x2; // XOR operation
+        end
+    endfunction
+
+    always @(*) begin
+        y = xor_eval(a, b); // Calling the function
+    end
+
+endmodule
+
+
+
+----------------------------------------------------------------------
+
+module half_adder (
+    input a, b,
+    output reg sum, carry
+);
+
+    // Task for Half-Adder
+    task ha;
+        input x, y;
+        output s, c;
+        begin
+            s = x ^ y; // Sum = XOR of inputs
+            c = x & y; // Carry = AND of inputs
+        end
+    endtask
+
+    always @(*) begin
+        ha(a, b, sum, carry); // Calling the half-adder task
+    end
+
+endmodule
+---------------------------------------------------------------------
